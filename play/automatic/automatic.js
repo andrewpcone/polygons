@@ -5,7 +5,15 @@ var stats_canvas = document.getElementById("stats_canvas");
 var stats_ctx = stats_canvas.getContext("2d");
 
 var NONCONFORM = 1.00;
+
 var BIAS = 0.33;
+
+var VARIABLE_BIAS = true; //set to true if we want normally distributed biases
+var MEAN_BIAS = 0.5;
+var STDEV_BIAS = 0.5;
+
+var SHOW_BIAS = false;
+
 var TILE_SIZE = 30;
 var PEEP_SIZE = 30;
 var GRID_SIZE = 20;
@@ -40,16 +48,34 @@ addAsset("sadSquare","../img/sad_square.png");
 var IS_PICKING_UP = false;
 var lastMouseX, lastMouseY;
 
+function normal(mean, stddev) {
+    stdnormal =  ((Math.random() + Math.random() + Math.random() + Math.random() + Math.random() + Math.random()) - 3) / 3;
+    return (1/0.23601)*stddev*stdnormal+mean;
+}
+
 function Draggable(x,y){
-	
+
 	var self = this;
 	self.x = x;
 	self.y = y;
 	self.gotoX = x;
 	self.gotoY = y;
 
+	self.reassign_bias = function() {
+		if(VARIABLE_BIAS) {
+			self.bias = normal(MEAN_BIAS, STDEV_BIAS);
+			self.bias = self.bias<0 ? 0 : self.bias;
+			self.bias = self.bias>1 ? 1 : self.bias;
+			console.log('here');
+		} else {
+			self.bias = BIAS;
+		}
+	};
+	self.reassign_bias();
+
 	var offsetX, offsetY;
 	var pickupX, pickupY;
+
 	self.pickup = function(){
 
 		IS_PICKING_UP = true;
@@ -70,6 +96,7 @@ function Draggable(x,y){
 		draggables.push(self);
 
 	};
+
 
 	self.drop = function(){
 
@@ -139,7 +166,7 @@ function Draggable(x,y){
 			}else{
 				self.sameness = 1;
 			}
-			if(self.sameness<BIAS || self.sameness>NONCONFORM){
+			if(self.sameness<self.bias || self.sameness>NONCONFORM){
 				self.shaking = true;
 			}
 			if(self.sameness>0.99){
@@ -216,6 +243,11 @@ function Draggable(x,y){
 		}
 
 		ctx.drawImage(img,-PEEP_SIZE/2,-PEEP_SIZE/2,PEEP_SIZE,PEEP_SIZE);
+
+		if(SHOW_BIAS) {
+			ctx.font = Math.round(self.bias*40) + "px Times";
+			ctx.strokeText("\u0FD5",-self.bias*PEEP_SIZE/2,5);
+		}
 		ctx.restore();
 	};
 
@@ -245,6 +277,7 @@ window.reset = function(){
 			}
 		}
 	}
+
 
 	// Write stats for first time
 	for(var i=0;i<draggables.length;i++){
@@ -319,6 +352,14 @@ var stats_text = document.getElementById("stats_text");
 var tmp_stats = document.createElement("canvas");
 tmp_stats.width = stats_canvas.width;
 tmp_stats.height = stats_canvas.height;
+
+window.reassign_biases = function() {
+	if(!draggables || draggables.length==0) return;
+	for(var i=0; i<draggables.length; i++) {
+		draggables[i].reassign_bias();
+	}
+}
+
 
 window.writeStats = function(){
 

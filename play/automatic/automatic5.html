@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+	<title>Automatic Simulation - Change Bias</title>
+	<link href="automatic.css" rel="stylesheet" type="text/css">
+	<link href="doubleslider.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+	<div id="container">
+		<canvas id="canvas" width="600" height="600"></canvas>
+		<div id="stats">
+
+			<div id="stats_canvas_container">
+				<canvas id="stats_canvas" width="370" height="270"></canvas>
+				<div id="stats_text"></div>
+			</div>
+
+			the average polygon moves if<br/>
+			<span class="highlight">less than <span id="bias_text">33%</span></span> &plusmn; stdev <span class='highlight'><span id='bias_stdev_text'>10%</span></span> <br/>
+			are like it
+			<br/>
+			<span style="font-size:18pt">average bias:</span>
+			<div id="mean_bias_slider"></div>
+			<br/>
+			<span style="font-size:18pt">standard deviation:</span>
+			<div id="stdev_bias_slider"></div>
+			<br/>
+			<input type='checkbox' onclick="SHOW_BIAS=!SHOW_BIAS"><span style="font-size:18pt">show bias of each polygon</span></input>
+			<br/>
+			<div class="ui" id="moving" onclick="START_SIM=!START_SIM; doneBuffer = 60; window.writeStats()"></div>
+			<div class="ui" id="reset" onclick="reset()" style="margin-left:9px"></div>
+
+		</div>
+
+	</div>
+	
+	
+
+</body>
+</html>
+
+<script src="../lib/Mouse.js"></script>
+<script src="automatic.js"></script>
+<script src="doubleslider.js"></script>
+<script>
+
+VARAIBLE_BIAS = true;
+var bias_text = document.getElementById("bias_text");
+
+var whatever = new DoubleSlider(document.getElementById("mean_bias_slider"),{
+	backgrounds:[
+		{color:"#555",icon:"ds_sad.png"},
+		{color:"#aaa",icon:"ds_happy.png"},
+		{color:"#2095dc",icon:"ds_sad.png"}
+	],
+	values:[0.33,1.02],
+	onChange:function(values){
+		
+		window.MEAN_BIAS = values[0];
+
+		// Write stats
+		START_SIM = false;
+		window.writeStats();
+		reassign_biases();
+		bias_text.innerHTML = Math.round(window.MEAN_BIAS*100)+"%";
+	}
+});
+
+
+var whatever = new DoubleSlider(document.getElementById("stdev_bias_slider"),{
+	backgrounds:[
+		{color:"#555",icon:"ds_homo.png"},
+		{color:"#aaa",icon:"ds_hetero.png"},
+		{color:"#2095dc",icon:"ds_homo.png"}
+	],
+	values:[0.1,1.02],
+	onChange:function(values){
+		
+		window.STDEV_BIAS = values[0];
+
+		// Write stats
+		START_SIM = false;
+		window.writeStats();
+		reassign_biases();
+		bias_stdev_text.innerHTML = Math.round(window.STDEV_BIAS*100)+"%";
+	}
+});
+
+
+
+
+window.IS_IN_SIGHT = true;
+
+</script>
